@@ -172,16 +172,64 @@ a{color:inherit;text-decoration:none}
 .print-btn:hover{background:var(--green);color:#fff}
 #print-sheet{display:none}
 @media print{
-  body *{visibility:hidden}
+  body>*:not(#print-sheet){display:none!important}
+  #print-sheet{display:block!important;position:static;padding:0;margin:0}
+  @page{margin:12mm;size:A4 portrait}
+}
   #print-sheet,#print-sheet *{visibility:visible}
   #print-sheet{display:block!important;position:fixed;inset:0;background:#fff;padding:0}
   @page{margin:15mm;size:A4}
 }
+
+/* ── LOGIN SCREEN ────────────────────────────────────── */
+.login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0F6E56 0%,#1D9E75 50%,#2DC98F 100%);display:flex;align-items:center;justify-content:center;z-index:9999;padding:1.5rem}
+.login-box{background:#fff;border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:380px;box-shadow:0 25px 60px rgba(0,0,0,.25);text-align:center}
+.login-logo{width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,#1D9E75,#0F6E56);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 1.25rem}
+.login-title{font-size:22px;font-weight:700;color:#1a1a1a;margin-bottom:4px}
+.login-sub{font-size:13px;color:#888;margin-bottom:2rem}
+.login-label{display:block;font-size:12px;font-weight:600;color:#555;text-align:left;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.login-input{width:100%;padding:13px 16px;border:1.5px solid #e5e5e5;border-radius:12px;font-size:15px;font-family:inherit;color:#1a1a1a;transition:border-color .2s;margin-bottom:1rem;background:#fafafa}
+.login-input:focus{outline:none;border-color:#1D9E75;background:#fff}
+.login-input.error{border-color:#D85A30;animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.login-btn{width:100%;padding:14px;background:linear-gradient(135deg,#1D9E75,#0F6E56);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s;margin-bottom:1rem}
+.login-btn:hover{opacity:.9}
+.login-btn:active{opacity:.8}
+.login-error{font-size:13px;color:#D85A30;font-weight:500;min-height:20px;margin-bottom:.5rem}
+.login-footer{font-size:11px;color:#bbb;margin-top:1rem}
+.login-footer a{color:#1D9E75;text-decoration:none;font-weight:600}
+.app-hidden{display:none!important}
+
 </style>
 </head>
 <body>
 
-<header class="app-header">
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">🥗</div>
+    <div class="login-title">Marmitas Fit</div>
+    <div class="login-sub">Plano alimentar personalizado<br>by Felipe Donatto</div>
+    <label class="login-label" for="login-pass">Senha de acesso</label>
+    <input 
+      class="login-input" 
+      type="password" 
+      id="login-pass" 
+      placeholder="Digite sua senha"
+      onkeydown="if(event.key==='Enter')doLogin()"
+      autocomplete="current-password"
+    >
+    <div class="login-error" id="login-error"></div>
+    <button class="login-btn" onclick="doLogin()">Acessar meu plano →</button>
+    <div class="login-footer">
+      Não tem acesso? Fale com<br>
+      <a href="https://wa.me/5511999999999" target="_blank">Felipe Donatto no WhatsApp</a>
+    </div>
+  </div>
+</div>
+
+
+<header class="app-header app-hidden" id="app-header">
   <div class="header-inner">
     <div class="logo">
       <div class="logo-icon">🥗</div>
@@ -197,7 +245,7 @@ a{color:inherit;text-decoration:none}
   </div>
 </header>
 
-<div class="main-wrap">
+<div class="main-wrap app-hidden" id="app-main">
 
   <!-- Goal selector -->
   <div class="goal-row">
@@ -316,11 +364,11 @@ function gGrams(name,qty,p){
 // ── State ────────────────────────────────────────────
 let goal=1200,meals=[],filterCat='all',filterGoal=true,pendingSlot=null;
 const SLOTS=[
-  {label:'Café da manhã',icon:'☕',type:'cafe'},
-  {label:'Lanche da manhã',icon:'🍎',type:'cafe'},
-  {label:'Almoço',icon:'🍽️',type:'main'},
-  {label:'Lanche da tarde',icon:'🥑',type:'cafe'},
-  {label:'Jantar',icon:'🌙',type:'main'}
+  {label:'Café da manhã',icon:'☕',type:'cafe',idx:0},
+  {label:'Lanche da manhã',icon:'🍎',type:'cafe',idx:1},
+  {label:'Almoço',icon:'🍽️',type:'main',idx:2},
+  {label:'Lanche da tarde',icon:'🥑',type:'cafe',idx:3},
+  {label:'Jantar',icon:'🌙',type:'main',idx:4}
 ];
 
 // ── Helpers ──────────────────────────────────────────
@@ -557,7 +605,7 @@ function renderGrocery(){
 // ── Print / PDF ───────────────────────────────────────
 function openPrintSheet(){
   if(!meals.length){
-    alert('Adicione ao menos uma refeição ao plano antes de imprimir.');
+    alert('Adicione ao menos uma refeição antes de imprimir.');
     return;
   }
 
@@ -567,178 +615,243 @@ function openPrintSheet(){
   const tC=meals.reduce((a,m)=>a+Math.round(pN(m.carbs)*(m.portion||1)),0);
   const tF=meals.reduce((a,m)=>a+Math.round(pN(m.fat)*(m.portion||1)),0);
   const today=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  const pct=Math.round(tK/goal*100);
 
-  // grocery
+  // Grocery map
   const gmap={};
   meals.forEach(m=>{(m.ingredients||[]).forEach(i=>{if(!i.name)return;if(!gmap[i.name])gmap[i.name]={name:i.name,qty:i.qty,portion:m.portion||1};});});
   const groceryItems=Object.values(gmap);
 
-  // meals HTML
+  // Build meals HTML
   const mealsHTML=SLOTS.map(slot=>{
     const meal=meals.find(m=>m.slot===slot.idx);
-    if(!meal)return `
-      <div class="ps-meal ps-empty">
-        <div class="ps-slot-header">
-          <span class="ps-slot-icon">${slot.icon}</span>
-          <span class="ps-slot-name">${slot.label}</span>
-          <span class="ps-slot-kcal" style="color:#aaa">—</span>
-        </div>
-      </div>`;
+    if(!meal){
+      return '<div class="ps-meal ps-empty"><b>'+slot.icon+' '+slot.label+'</b> — não definido</div>';
+    }
     const p=meal.portion||1;
     const k=Math.round(pN(meal.kcal)*p);
     const pr=Math.round(pN(meal.protein)*p);
     const ca=Math.round(pN(meal.carbs)*p);
     const fa=Math.round(pN(meal.fat)*p);
-    const srcTag=meal.meal_type==='cafe'
-      ?'<span class="ps-src ps-src-cafe">☀️ Cafés</span>'
-      :'<span class="ps-src ps-src-main">🥗 Marmitas</span>';
+    const isCafe=meal.meal_type==='cafe';
+    const srcTag=isCafe?'<span class="ps-badge ps-cafe">☀️ Cafés</span>':'<span class="ps-badge ps-main">🥗 Marmitas</span>';
+
     const ingRows=(meal.ingredients||[]).map(i=>{
       const g=gGrams(i.name,i.qty,p);
-      return `<tr><td>${i.name}</td><td>${i.qty||'q.b.'}</td><td class="ps-g">${g||'—'}</td></tr>`;
+      return '<tr><td>'+i.name+'</td><td>'+( i.qty||'q.b.')+'</td><td>'+(g?'<b>'+g+'</b>':'—')+'</td></tr>';
     }).join('');
-    const stepsList=(meal.steps||[]).map((s,i)=>`<li><b>${i+1}.</b> ${s}</li>`).join('');
-    const freezeLine=meal.freeze?`<p class="ps-freeze">❄️ ${meal.freeze}</p>`:'';
-    return `
-      <div class="ps-meal">
-        <div class="ps-slot-header">
-          <span class="ps-slot-icon">${slot.icon}</span>
-          <span class="ps-slot-name">${slot.label}</span>
-          ${srcTag}
-          <span class="ps-slot-kcal">${k} kcal</span>
-          ${p!==1?`<span class="ps-portion">×${p.toFixed(1)} porção</span>`:''}
-        </div>
-        <div class="ps-recipe-name">${meal.title}</div>
-        <div class="ps-macros">
-          <span>🥩 Prot: <b>${pr}g</b></span>
-          <span>🌾 Carbs: <b>${ca}g</b></span>
-          <span>🥑 Gordura: <b>${fa}g</b></span>
-          <span>⏱ ${meal.time} min</span>
-        </div>
-        <div class="ps-cols">
-          <div class="ps-col-ing">
-            <div class="ps-sub">Ingredientes</div>
-            <table class="ps-ing-table"><tbody>${ingRows}</tbody></table>
-          </div>
-          <div class="ps-col-steps">
-            <div class="ps-sub">Modo de preparo</div>
-            <ol class="ps-steps">${stepsList}</ol>
-            ${freezeLine}
-          </div>
-        </div>
-      </div>`;
+
+    const stepsList=(meal.steps||[]).map((s,i)=>'<li><b>'+(i+1)+'.</b> '+s+'</li>').join('');
+    const freezeHtml=meal.freeze?'<p class="ps-freeze">❄️ '+meal.freeze+'</p>':'';
+    const portionTag=p!==1?'<span class="ps-portion"> · porção ×'+p.toFixed(1)+'</span>':'';
+
+    return '<div class="ps-meal">'
+      +'<div class="ps-meal-header">'
+        +'<span class="ps-slot-icon">'+slot.icon+'</span>'
+        +'<span class="ps-slot-label">'+slot.label+'</span>'
+        +srcTag
+        +'<span class="ps-kcal">'+k+' kcal</span>'
+        +portionTag
+      +'</div>'
+      +'<div class="ps-recipe-name">'+meal.title+'</div>'
+      +'<div class="ps-macros">'
+        +'<span>🥩 Proteína: <b>'+pr+'g</b></span>'
+        +'<span>🌾 Carbos: <b>'+ca+'g</b></span>'
+        +'<span>🥑 Gordura: <b>'+fa+'g</b></span>'
+        +'<span>⏱ '+meal.time+' min</span>'
+      +'</div>'
+      +'<div class="ps-two-col">'
+        +'<div class="ps-col">'
+          +'<div class="ps-col-title">Ingredientes</div>'
+          +'<table class="ps-table"><tbody>'+ingRows+'</tbody></table>'
+          +freezeHtml
+        +'</div>'
+        +'<div class="ps-col">'
+          +'<div class="ps-col-title">Modo de preparo</div>'
+          +'<ol class="ps-steps">'+stepsList+'</ol>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
   }).join('');
 
-  // grocery HTML
-  const groceryHTML=groceryItems.map(it=>{
+  // Build grocery HTML
+  const groceryHTML=groceryItems.map((it,i)=>{
     const g=gGrams(it.name,it.qty,it.portion);
-    return `<li><span class="ps-check">☐</span> ${it.name}${it.qty?' — '+it.qty:''}${g?' <span class="ps-gg">'+g+'</span>':''}</li>`;
+    return '<div class="ps-gi">'
+      +'<span class="ps-cb">☐</span>'
+      +it.name+(it.qty?' — '+it.qty:'')
+      +(g?' <span class="ps-gpill">'+g+'</span>':'')
+    +'</div>';
   }).join('');
 
   const sheet=document.getElementById('print-sheet');
-  sheet.innerHTML=`
-  <style>
-    #print-sheet{font-family:'Helvetica Neue',Arial,sans-serif;color:#1a1a1a;font-size:12px;line-height:1.5;background:#fff}
-    .ps-header{border-bottom:2px solid #1D9E75;padding-bottom:12px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end}
-    .ps-header-left h1{font-size:20px;font-weight:700;color:#1D9E75;margin:0}
-    .ps-header-left p{font-size:11px;color:#666;margin:3px 0 0}
-    .ps-header-right{text-align:right;font-size:11px;color:#444}
-    .ps-header-right strong{display:block;font-size:13px}
-    .ps-summary{display:flex;gap:12px;background:#f5faf7;border:1px solid #c8e6d8;border-radius:8px;padding:10px 14px;margin-bottom:16px}
-    .ps-sum-item{flex:1;text-align:center}
-    .ps-sum-item .sv{font-size:18px;font-weight:700;color:#1D9E75}
-    .ps-sum-item .sl{font-size:10px;color:#666;text-transform:uppercase;letter-spacing:.04em}
-    .ps-sum-item.warn .sv{color:#D85A30}
-    .ps-section-title{font-size:13px;font-weight:700;color:#1D9E75;text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px;padding-bottom:4px;border-bottom:1px solid #c8e6d8}
-    .ps-meal{border:1px solid #e0e0e0;border-radius:8px;padding:12px 14px;margin-bottom:12px;break-inside:avoid}
-    .ps-meal.ps-empty{background:#fafafa;border-style:dashed}
-    .ps-slot-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
-    .ps-slot-icon{font-size:16px}
-    .ps-slot-name{font-size:13px;font-weight:700;color:#333}
-    .ps-slot-kcal{font-size:13px;font-weight:700;color:#1D9E75;margin-left:auto}
-    .ps-portion{font-size:11px;color:#888;background:#f0f0f0;padding:1px 7px;border-radius:10px}
-    .ps-src{font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px}
-    .ps-src-cafe{background:#FAEEDA;color:#854F0B}
-    .ps-src-main{background:#E1F5EE;color:#0F6E56}
-    .ps-recipe-name{font-size:14px;font-weight:600;margin-bottom:6px}
-    .ps-macros{display:flex;gap:14px;font-size:11px;color:#555;margin-bottom:10px;flex-wrap:wrap}
-    .ps-macros span b{color:#222}
-    .ps-cols{display:flex;gap:14px}
-    .ps-col-ing{flex:1;min-width:0}
-    .ps-col-steps{flex:1.4;min-width:0}
-    .ps-sub{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
-    .ps-ing-table{width:100%;border-collapse:collapse;font-size:11px}
-    .ps-ing-table tr{border-bottom:1px solid #f0f0f0}
-    .ps-ing-table td{padding:3px 4px;vertical-align:top}
-    .ps-ing-table td:nth-child(2){color:#666;text-align:right;padding:3px 6px}
-    .ps-g{background:#E1F5EE;color:#0F6E56;font-size:10px;font-weight:600;padding:1px 5px;border-radius:8px;white-space:nowrap}
-    .ps-steps{padding-left:0;list-style:none;font-size:11px;margin:0}
-    .ps-steps li{padding:3px 0;border-bottom:1px solid #f5f5f5;color:#333}
-    .ps-steps li:last-child{border-bottom:none}
-    .ps-freeze{font-size:10px;color:#0F6E56;background:#E1F5EE;padding:5px 8px;border-radius:6px;margin-top:6px}
-    .ps-grocery-section{break-inside:avoid;margin-top:4px}
-    .ps-grocery-grid{columns:2;column-gap:20px;list-style:none;padding:0;margin:0}
-    .ps-grocery-grid li{padding:4px 0;border-bottom:1px solid #f0f0f0;font-size:11px;break-inside:avoid;display:flex;align-items:center;gap:6px}
-    .ps-check{font-size:14px;color:#aaa;flex-shrink:0}
-    .ps-gg{background:#E1F5EE;color:#0F6E56;font-size:10px;font-weight:600;padding:1px 6px;border-radius:8px}
-    .ps-footer{margin-top:20px;padding-top:10px;border-top:1px solid #ddd;font-size:10px;color:#aaa;display:flex;justify-content:space-between}
-    .ps-page-break{page-break-before:always}
+  sheet.innerHTML=`<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1a1a1a;background:#fff}
+  .ps-wrap{max-width:100%;padding:0}
+  .ps-header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #1D9E75;padding-bottom:10px;margin-bottom:14px}
+  .ps-header-left h1{font-size:18px;font-weight:700;color:#1D9E75;margin:0 0 2px}
+  .ps-header-left p{font-size:10px;color:#666}
+  .ps-header-right{text-align:right;font-size:10px;color:#555}
+  .ps-header-right strong{font-size:12px;color:#1D9E75;display:block}
+  .ps-summary{display:flex;gap:8px;background:#f0faf6;border:1px solid #b8dece;border-radius:8px;padding:10px 12px;margin-bottom:14px}
+  .ps-sum{flex:1;text-align:center}
+  .ps-sum .sv{font-size:16px;font-weight:700;color:#1D9E75;display:block}
+  .ps-sum .sl{font-size:9px;color:#666;text-transform:uppercase;letter-spacing:.04em}
+  .ps-sum.warn .sv{color:#D85A30}
+  .ps-section{font-size:11px;font-weight:700;color:#1D9E75;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #c8e6d8;padding-bottom:4px;margin-bottom:10px}
+  .ps-meal{border:1px solid #ddd;border-radius:8px;padding:10px 12px;margin-bottom:10px;page-break-inside:avoid}
+  .ps-meal.ps-empty{background:#fafafa;border-style:dashed;padding:8px 12px;color:#aaa;font-size:11px}
+  .ps-meal-header{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+  .ps-slot-icon{font-size:14px}
+  .ps-slot-label{font-size:12px;font-weight:700;color:#333}
+  .ps-kcal{margin-left:auto;font-size:12px;font-weight:700;color:#1D9E75}
+  .ps-portion{font-size:10px;color:#888}
+  .ps-badge{font-size:9px;font-weight:600;padding:1px 6px;border-radius:8px}
+  .ps-cafe{background:#FAEEDA;color:#854F0B}
+  .ps-main{background:#E1F5EE;color:#0F6E56}
+  .ps-recipe-name{font-size:13px;font-weight:700;margin-bottom:5px;color:#111}
+  .ps-macros{display:flex;gap:12px;font-size:10px;color:#555;margin-bottom:8px;flex-wrap:wrap}
+  .ps-macros span b{color:#222}
+  .ps-two-col{display:flex;gap:12px}
+  .ps-col{flex:1;min-width:0}
+  .ps-col-title{font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;border-bottom:1px solid #f0f0f0;padding-bottom:3px}
+  .ps-table{width:100%;border-collapse:collapse;font-size:10px}
+  .ps-table tr{border-bottom:1px solid #f5f5f5}
+  .ps-table td{padding:3px 2px;vertical-align:top}
+  .ps-table td:nth-child(2){color:#666;padding:3px 5px;white-space:nowrap}
+  .ps-table td:nth-child(3){color:#0F6E56;font-weight:600;white-space:nowrap}
+  .ps-steps{padding-left:0;list-style:none;font-size:10px}
+  .ps-steps li{padding:2px 0;border-bottom:1px solid #f8f8f8;line-height:1.4}
+  .ps-steps li:last-child{border:none}
+  .ps-freeze{font-size:9px;color:#0F6E56;background:#E1F5EE;padding:4px 8px;border-radius:5px;margin-top:5px}
+  .ps-page-break{page-break-before:always;height:0}
+  .ps-gi{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:11px;break-inside:avoid}
+  .ps-gi:last-child{border:none}
+  .ps-cb{font-size:14px;color:#bbb;flex-shrink:0;line-height:1}
+  .ps-gpill{background:#E1F5EE;color:#0F6E56;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px}
+  .ps-grocery-grid{columns:2;column-gap:20px}
+  .ps-footer{margin-top:16px;padding-top:8px;border-top:1px solid #eee;display:flex;justify-content:space-between;font-size:9px;color:#aaa}
   </style>
+  <div class="ps-wrap">
+    <div class="ps-header">
+      <div class="ps-header-left">
+        <h1>🥗 Plano Alimentar · Felipe Donatto</h1>
+        <p>${today} &nbsp;·&nbsp; Meta: ${goal} kcal · ${goalNames[goal]||''} &nbsp;·&nbsp; ${pct}% da meta atingido</p>
+      </div>
+      <div class="ps-header-right">
+        <strong>Marmitas Fit</strong>
+        240 receitas saudáveis
+      </div>
+    </div>
 
-  <div class="ps-header">
-    <div class="ps-header-left">
-      <h1>🥗 Plano Alimentar · Felipe Donatto</h1>
-      <p>${today} &nbsp;·&nbsp; Meta: ${goal} kcal (${goalNames[goal]||''})</p>
+    <div class="ps-summary">
+      <div class="ps-sum ${tK>goal?'warn':''}">
+        <span class="sv">${tK}</span><span class="sl">kcal totais</span>
+      </div>
+      <div class="ps-sum">
+        <span class="sv">${tP}g</span><span class="sl">Proteína</span>
+      </div>
+      <div class="ps-sum">
+        <span class="sv">${tC}g</span><span class="sl">Carboidratos</span>
+      </div>
+      <div class="ps-sum">
+        <span class="sv">${tF}g</span><span class="sl">Gorduras</span>
+      </div>
+      <div class="ps-sum">
+        <span class="sv">${meals.length}/5</span><span class="sl">Refeições</span>
+      </div>
+      <div class="ps-sum">
+        <span class="sv">${goal-tK>0?goal-tK:0}</span><span class="sl">kcal restantes</span>
+      </div>
     </div>
-    <div class="ps-header-right">
-      <strong>Marmitas Fit</strong>
-      240 receitas saudáveis
-    </div>
-  </div>
 
-  <div class="ps-summary">
-    <div class="ps-sum-item ${tK>goal?'warn':''}">
-      <div class="sv">${tK}</div><div class="sl">kcal totais</div>
-    </div>
-    <div class="ps-sum-item">
-      <div class="sv">${tP}g</div><div class="sl">proteína</div>
-    </div>
-    <div class="ps-sum-item">
-      <div class="sv">${tC}g</div><div class="sl">carboidratos</div>
-    </div>
-    <div class="ps-sum-item">
-      <div class="sv">${tF}g</div><div class="sl">gorduras</div>
-    </div>
-    <div class="ps-sum-item">
-      <div class="sv">${meals.length}</div><div class="sl">refeições</div>
-    </div>
-  </div>
+    <div class="ps-section">📅 Refeições do dia</div>
+    ${mealsHTML}
 
-  <div class="ps-section-title">📅 Refeições do dia</div>
-  ${mealsHTML}
+    <div class="ps-page-break"></div>
 
-  <div class="ps-page-break"></div>
-
-  <div class="ps-header" style="margin-top:0">
-    <div class="ps-header-left">
-      <h1>🛒 Lista de Compras · Felipe Donatto</h1>
-      <p>${today} &nbsp;·&nbsp; ${groceryItems.length} ingredientes para ${meals.length} refeições</p>
+    <div class="ps-header" style="margin-top:0">
+      <div class="ps-header-left">
+        <h1>🛒 Lista de Compras · Felipe Donatto</h1>
+        <p>${today} &nbsp;·&nbsp; ${groceryItems.length} ingredientes · ${meals.length} refeições</p>
+      </div>
     </div>
-  </div>
+    <div class="ps-grocery-grid">${groceryHTML}</div>
 
-  <div class="ps-grocery-section">
-    <ul class="ps-grocery-grid">${groceryHTML}</ul>
-  </div>
-
-  <div class="ps-footer">
-    <span>Gerado pelo app Marmitas Fit · Felipe Donatto</span>
-    <span>Para salvar como PDF: Ctrl+P → Salvar como PDF</span>
+    <div class="ps-footer">
+      <span>Gerado pelo app Marmitas Fit · Felipe Donatto · Nutricionista</span>
+      <span>Para salvar como PDF: Ctrl+P → Salvar como PDF</span>
+    </div>
   </div>`;
 
-  window.print();
+  // Small delay to ensure DOM is updated then print
+  setTimeout(()=>window.print(), 300);
 }
 
-// patch SLOTS with idx
-SLOTS.forEach((s,i)=>s.idx=i);
+
+// ── LOGIN ─────────────────────────────────────────────
+// Adicione quantas senhas quiser abaixo:
+// 'SENHA': 'Nome do Paciente'
+const PASSWORDS = {
+  'marmitas2024':   'Paciente Geral',
+  'felipefit':      'Acesso Demo',
+  'nutri123':       'Consulta Padrão',
+  // Adicione mais senhas aqui:
+  // 'senhadopaciente': 'Nome do Paciente',
+};
+
+const SESSION_KEY = 'marmitas_auth';
+
+function checkSession(){
+  const saved = sessionStorage.getItem(SESSION_KEY);
+  if(saved){
+    unlockApp(saved);
+  }
+}
+
+function doLogin(){
+  const pass = document.getElementById('login-pass').value.trim();
+  const errEl = document.getElementById('login-error');
+  const input = document.getElementById('login-pass');
+  
+  if(!pass){
+    errEl.textContent = 'Digite sua senha para continuar.';
+    input.classList.add('error');
+    setTimeout(()=>input.classList.remove('error'),400);
+    return;
+  }
+  
+  if(PASSWORDS[pass]){
+    sessionStorage.setItem(SESSION_KEY, PASSWORDS[pass]);
+    unlockApp(PASSWORDS[pass]);
+  } else {
+    errEl.textContent = '❌ Senha incorreta. Tente novamente.';
+    input.value = '';
+    input.classList.add('error');
+    setTimeout(()=>input.classList.remove('error'),400);
+    input.focus();
+  }
+}
+
+function unlockApp(patientName){
+  // Hide login, show app
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-header').classList.remove('app-hidden');
+  document.getElementById('app-main').classList.remove('app-hidden');
+  
+  // Update user name in header
+  const userChip = document.querySelector('.user-chip');
+  if(userChip && patientName !== 'Paciente Geral'){
+    const name = patientName.split(' ').slice(0,2).join(' ');
+    const initials = patientName.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    userChip.innerHTML = '<div class="av">'+initials+'</div><span>'+name+'</span>';
+  }
+}
+
+// Check if already logged in
+checkSession();
+
 
 // ── Init ──────────────────────────────────────────────
 renderMeals();

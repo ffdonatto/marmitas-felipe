@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marmitas Fit · Felipe Donatto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1D9E75;--green-dark:#0F6E56;--green-light:#E1F5EE;--green-text:#0F6E56;
+  --amber:#BA7517;--amber-light:#FAEEDA;--amber-text:#854F0B;
+  --red:#D85A30;
+  --bg:#F7F6F2;--surface:#FFFFFF;--surface2:#F2F1ED;
+  --border:#E5E3DC;--border2:#D4D2CB;
+  --text:#1A1915;--text2:#6B6960;--text3:#9B9990;
+  --radius:12px;--radius-sm:8px;--radius-full:999px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.5}
+a{color:inherit;text-decoration:none}
+
+/* Layout */
+.app-header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;padding:0 1rem}
+.header-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px;gap:1rem}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:32px;height:32px;border-radius:8px;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:16px}
+.logo-text{font-size:15px;font-weight:600;color:var(--text)}
+.logo-sub{font-size:12px;color:var(--text2)}
+.user-chip{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-full);padding:5px 12px 5px 6px;font-size:13px}
+.av{width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+
+.main-wrap{max-width:900px;margin:0 auto;padding:1.5rem 1rem 4rem}
+
+/* Goal tabs */
+.goal-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.5rem}
+.goal-tab{padding:12px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--surface);cursor:pointer;text-align:center;transition:all .15s}
+.goal-tab:hover{border-color:var(--border2);background:var(--surface2)}
+.goal-tab.active{background:var(--green);border-color:var(--green);color:#fff}
+.goal-tab .gk{font-size:18px;font-weight:600;display:block}
+.goal-tab .gl{font-size:11px;opacity:.75;display:block;margin-top:2px}
+
+/* Tabs nav */
+.tabs-nav{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.5rem;gap:0;overflow-x:auto}
+.tab-btn{padding:10px 18px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--green);border-bottom-color:var(--green)}
+
+/* Summary */
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}
+.s-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px}
+.s-card .sv{font-size:22px;font-weight:600;color:var(--text)}
+.s-card .sl{font-size:11px;color:var(--text2);margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+.s-card.hi .sv{color:var(--green)}
+.prog-wrap{margin-bottom:1.5rem}
+.prog-bar{height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;margin-top:6px}
+.prog-fill{height:100%;background:var(--green);border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.prog-fill.over{background:var(--red)}
+.prog-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text2)}
+
+/* Meal slots */
+.meal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .15s;margin-bottom:8px;box-shadow:var(--shadow)}
+.meal-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+.meal-card.filled{border-left:3px solid var(--green)}
+.meal-card.filled-cafe{border-left:3px solid var(--amber)}
+.meal-card.empty-slot{border-style:dashed;background:transparent;box-shadow:none}
+.meal-card.empty-slot:hover{background:var(--surface);border-style:solid}
+.slot-ico{width:40px;height:40px;border-radius:var(--radius-sm);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.slot-body{flex:1;min-width:0}
+.slot-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot-meta{font-size:12px;color:var(--text2);margin-top:3px}
+.slot-hint{font-size:11px;color:var(--amber);font-weight:500}
+.slot-kcal{font-size:14px;font-weight:600;color:var(--green);flex-shrink:0}
+.slot-kcal.amber{color:var(--amber)}
+.rm-btn{background:none;border:none;cursor:pointer;color:var(--text3);padding:6px;border-radius:6px;flex-shrink:0;font-size:16px;line-height:1;transition:color .15s}
+.rm-btn:hover{color:var(--red);background:rgba(216,90,48,.08)}
+.add-meal-btn{width:100%;padding:14px;border:1.5px dashed var(--border2);border-radius:var(--radius);background:transparent;color:var(--text2);font-size:14px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit}
+.add-meal-btn:hover{background:var(--surface);border-style:solid;color:var(--text)}
+
+/* Recipes */
+.search-wrap{position:relative;margin-bottom:1rem}
+.search-wrap input{width:100%;padding:11px 14px 11px 40px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);font-size:14px;font-family:inherit;transition:border-color .15s}
+.search-wrap input:focus{outline:none;border-color:var(--green)}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:16px;pointer-events:none}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.f-btn{padding:6px 14px;border-radius:var(--radius-full);border:1px solid var(--border);background:var(--surface);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;font-family:inherit}
+.f-btn:hover{border-color:var(--border2);background:var(--surface2)}
+.f-btn.active{background:var(--green-light);border-color:var(--green);color:var(--green-text)}
+.f-btn.active-amber{background:var(--amber-light);border-color:var(--amber);color:var(--amber-text)}
+.rec-list{display:flex;flex-direction:column;gap:8px;max-height:520px;overflow-y:auto;padding-right:2px}
+.rec-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;cursor:pointer;transition:all .15s;box-shadow:var(--shadow)}
+.rec-card:hover{border-color:var(--green);transform:translateY(-1px)}
+.rec-card.cafe-card{border-left:3px solid var(--amber)}
+.rec-card.cafe-card:hover{border-color:var(--amber);background:var(--amber-light)}
+.rec-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.rec-title{font-size:14px;font-weight:500}
+.rec-kcal{font-size:14px;font-weight:600;color:var(--green);flex-shrink:0}
+.rec-kcal.amber{color:var(--amber)}
+.rec-meta{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
+.rec-meta span{font-size:12px;color:var(--text2)}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:var(--radius-full);font-size:11px;font-weight:500}
+.badge-easy{background:var(--green-light);color:var(--green-text)}
+.badge-mid{background:var(--amber-light);color:var(--amber-text)}
+.badge-cafe{background:var(--amber-light);color:var(--amber-text)}
+.badge-main{background:var(--green-light);color:var(--green-text)}
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--text2)}
+.empty-state .ei{font-size:48px;margin-bottom:1rem}
+.empty-state p{font-size:14px}
+
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-start;justify-content:center;padding:1.5rem 1rem;overflow-y:auto;backdrop-filter:blur(4px)}
+.modal-bg.open{display:flex}
+.modal-box{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);width:100%;max-width:580px;padding:1.75rem;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal-close{position:absolute;top:14px;right:14px;background:var(--surface2);border:none;cursor:pointer;color:var(--text2);font-size:18px;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.modal-close:hover{background:var(--border);color:var(--text)}
+.modal-title{font-size:20px;font-weight:600;margin-bottom:4px;padding-right:40px}
+.modal-sub{font-size:13px;color:var(--text2);margin-bottom:1.25rem;display:flex;align-items:center;gap:8px}
+.macro-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem}
+.mc{text-align:center;padding:10px 8px;background:var(--surface2);border-radius:var(--radius-sm)}
+.mc .mv{font-size:18px;font-weight:600}
+.mc .ml{font-size:11px;color:var(--text2);margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+.mc.green .mv{color:var(--green)}
+.mc.blue .mv{color:#378ADD}
+.mc.orange .mv{color:var(--red)}
+.mc.amber .mv{color:var(--amber)}
+.sec-lbl{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;margin-top:1.25rem}
+.ing-table{width:100%;border-collapse:collapse;margin-bottom:.5rem}
+.ing-table tr{border-bottom:1px solid var(--border)}
+.ing-table tr:last-child{border-bottom:none}
+.ing-table td{padding:7px 0;font-size:13px;vertical-align:middle}
+.ing-table td:nth-child(2){color:var(--text2);text-align:right;padding:0 8px}
+.g-pill{background:var(--green-light);color:var(--green-text);font-size:11px;font-weight:600;padding:2px 8px;border-radius:var(--radius-full);white-space:nowrap}
+.g-pill.nil{background:var(--surface2);color:var(--text3)}
+.steps-ol{list-style:none;margin-bottom:.5rem}
+.steps-ol li{padding:8px 0 8px 34px;border-bottom:1px solid var(--border);font-size:13px;position:relative}
+.steps-ol li:last-child{border-bottom:none}
+.step-n{position:absolute;left:0;top:8px;width:24px;height:24px;border-radius:50%;background:var(--green);color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center}
+.freeze-box{background:var(--green-light);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:var(--green-text);display:flex;align-items:center;gap:8px;margin-top:.75rem}
+.portion-row{display:flex;align-items:center;gap:12px;background:var(--surface2);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:1rem;margin-top:.5rem}
+.portion-row label{font-size:13px;color:var(--text2);flex:1}
+.portion-row input[type=range]{flex:2;accent-color:var(--green)}
+.portion-val{font-size:14px;font-weight:600;min-width:36px;text-align:right}
+.slot-select-row{display:flex;gap:10px;align-items:center;margin-bottom:1.25rem}
+.slot-select-row label{font-size:13px;color:var(--text2);white-space:nowrap}
+.slot-select-row select{flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:13px;font-family:inherit}
+.slot-select-row select:focus{outline:none;border-color:var(--green)}
+.add-plan-btn{width:100%;padding:14px;background:var(--green);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;font-family:inherit}
+.add-plan-btn:hover{background:var(--green-dark)}
+
+/* Grocery */
+.grocery-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.grocery-item:last-child{border-bottom:none}
+.grocery-item input[type=checkbox]{width:18px;height:18px;accent-color:var(--green);cursor:pointer;flex-shrink:0}
+.grocery-item label{flex:1;cursor:pointer;display:flex;align-items:center;gap:8px}
+.grocery-item label.done{text-decoration:line-through;color:var(--text3)}
+.grocery-g{background:var(--green-light);color:var(--green-text);font-size:11px;font-weight:600;padding:1px 7px;border-radius:var(--radius-full)}
+
+/* Panel */
+.panel{display:none}
+.panel.active{display:block}
+
+@media(max-width:600px){
+  .summary-grid{grid-template-columns:repeat(2,1fr)}
+  .goal-row{grid-template-columns:1fr}
+  .macro-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ── PRINT STYLES ─────────────────────────────────── */
+.print-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;margin-top:1rem;background:#fff;color:var(--green);border:1.5px solid var(--green);border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit}
+.print-btn:hover{background:var(--green);color:#fff}
+#print-sheet{display:none}
+@media print{
+  body>*:not(#print-sheet){display:none!important}
+  #print-sheet{display:block!important;position:static;padding:0;margin:0}
+  @page{margin:12mm;size:A4 portrait}
+}
+
+/* ── LOGIN SCREEN ────────────────────────────────────── */
+.login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0F6E56 0%,#1D9E75 50%,#2DC98F 100%);display:flex!important;align-items:center;justify-content:center;z-index:9999;padding:1.5rem}
+.login-box{background:#fff;border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:380px;box-shadow:0 25px 60px rgba(0,0,0,.25);text-align:center}
+.login-logo{width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,#1D9E75,#0F6E56);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 1.25rem}
+.login-title{font-size:22px;font-weight:700;color:#1a1a1a;margin-bottom:4px}
+.login-sub{font-size:13px;color:#888;margin-bottom:2rem}
+.login-label{display:block;font-size:12px;font-weight:600;color:#555;text-align:left;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.login-input{width:100%;padding:13px 16px;border:1.5px solid #e5e5e5;border-radius:12px;font-size:15px;font-family:inherit;color:#1a1a1a;transition:border-color .2s;margin-bottom:1rem;background:#fafafa}
+.login-input:focus{outline:none;border-color:#1D9E75;background:#fff}
+.login-input.error{border-color:#D85A30;animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.login-btn{width:100%;padding:14px;background:linear-gradient(135deg,#1D9E75,#0F6E56);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s;margin-bottom:1rem}
+.login-btn:hover{opacity:.9}
+.login-btn:active{opacity:.8}
+.login-error{font-size:13px;color:#D85A30;font-weight:500;min-height:20px;margin-bottom:.5rem}
+.login-footer{font-size:11px;color:#bbb;margin-top:1rem}
+.login-footer a{color:#1D9E75;text-decoration:none;font-weight:600}
+.app-hidden{display:none!important}
+
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">🥗</div>
+    <div class="login-title">Marmitas Fit</div>
+    <div class="login-sub">Plano alimentar personalizado<br>by Felipe Donatto</div>
+    <label class="login-label" for="login-pass">Senha de acesso</label>
+    <input 
+      class="login-input" 
+      type="password" 
+      id="login-pass" 
+      placeholder="Digite sua senha"
+      onkeydown="if(event.key==='Enter')doLogin()"
+      autocomplete="current-password"
+    >
+    <div class="login-error" id="login-error"></div>
+    <button class="login-btn" onclick="doLogin()">Acessar meu plano →</button>
+    <div class="login-footer">
+      Não tem acesso? Fale com<br>
+      <a href="https://wa.me/5511999999999" target="_blank">Felipe Donatto no WhatsApp</a>
+    </div>
+  </div>
+</div>
+
+
+<header class="app-header app-hidden" id="app-header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">🥗</div>
+      <div>
+        <div class="logo-text">Marmitas Fit</div>
+        <div class="logo-sub">240 receitas saudáveis</div>
+      </div>
+    </div>
+    <div class="user-chip">
+      <div class="av">FD</div>
+      <span>Felipe Donatto</span>
+    </div>
+  </div>
+</header>
+
+<div class="main-wrap app-hidden" id="app-main">
+
+  <!-- Goal selector -->
+  <div class="goal-row">
+    <div class="goal-tab active" onclick="setGoal(1200,this)">
+      <span class="gk">1200 kcal</span>
+      <span class="gl">Emagrecimento</span>
+    </div>
+    <div class="goal-tab" onclick="setGoal(1400,this)">
+      <span class="gk">1400 kcal</span>
+      <span class="gl">Manutenção</span>
+    </div>
+    <div class="goal-tab" onclick="setGoal(1600,this)">
+      <span class="gk">1600 kcal</span>
+      <span class="gl">Hipertrofia</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-nav">
+    <button class="tab-btn active" onclick="showPanel('plan',this)">📅 Plano do dia</button>
+    <button class="tab-btn" onclick="showPanel('recipes',this)">📖 Receitas</button>
+    <button class="tab-btn" onclick="showPanel('grocery',this)">🛒 Lista de compras</button>
+  </div>
+
+  <!-- PLAN panel -->
+  <div id="panel-plan" class="panel active">
+    <div class="summary-grid">
+      <div class="s-card hi">
+        <div class="sv" id="sum-kcal">0</div>
+        <div class="sl">kcal consumidas</div>
+      </div>
+      <div class="s-card">
+        <div class="sv" id="sum-prot">0g</div>
+        <div class="sl">Proteína</div>
+      </div>
+      <div class="s-card">
+        <div class="sv" id="sum-carb">0g</div>
+        <div class="sl">Carboidratos</div>
+      </div>
+      <div class="s-card">
+        <div class="sv" id="sum-fat">0g</div>
+        <div class="sl">Gorduras</div>
+      </div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-label">
+        <span id="prog-txt">0% da meta diária</span>
+        <span id="prog-goal">Meta: 1200 kcal</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+
+    <div id="meals-list"></div>
+
+    <button class="add-meal-btn" onclick="openAdd()">
+      <span style="font-size:18px">+</span> Adicionar refeição
+    </button>
+
+    <button class="print-btn" onclick="openPrintSheet()">
+      🖨️ Imprimir plano do dia / Salvar PDF
+    </button>
+  </div>
+
+  <!-- RECIPES panel -->
+  <div id="panel-recipes" class="panel">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="Buscar receitas..." oninput="renderRecipes()">
+    </div>
+    <div class="filter-row">
+      <button class="f-btn active" onclick="setFilter('all',this)">Todas</button>
+      <button class="f-btn active-amber" id="f-cafe" onclick="setFilter('cafe',this)">☀️ Café & Lanche</button>
+      <button class="f-btn" onclick="setFilter('frango',this)">🍗 Frango</button>
+      <button class="f-btn" onclick="setFilter('carne',this)">🥩 Carne</button>
+      <button class="f-btn" onclick="setFilter('peixe',this)">🐟 Peixe</button>
+      <button class="f-btn" onclick="setFilter('veg',this)">🥦 Vegetariano</button>
+      <button class="f-btn" onclick="setFilter('sopa',this)">🍲 Sopa</button>
+      <button class="f-btn active" id="f-goal" onclick="toggleGoal(this)">🎯 Dentro da meta</button>
+    </div>
+    <div class="rec-list" id="recipes-list"></div>
+  </div>
+
+  <!-- GROCERY panel -->
+  <div id="panel-grocery" class="panel">
+    <div id="grocery-list"></div>
+  </div>
+
+</div>
+
+<!-- Modal -->
+<div class="modal-bg" id="modal-bg" onclick="closeOvl(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ALL_RECIPES loaded from recipes.js
+
+// ── Unit conversion ──────────────────────────────────
+const UG={"xícara":160,"xícaras":160,"½ xícara":80,"¼ xícara":40,"¾ xícara":120,"1 xícara":160,"2 xícaras":320,"colher de sopa":15,"colheres de sopa":15,"1 colher de sopa":15,"2 colheres de sopa":30,"3 colheres de sopa":45,"4 colheres de sopa":60,"colher de chá":5,"colheres de chá":5,"1 colher de chá":5,"unidade":120,"unidades":120,"½ unidade":60,"¼ unidade":30,"1 unidade":120,"2 unidades":240,"3 unidades":360,"4 unidades":480,"2 unidades médias":240,"lata":170,"1 lata":170,"½ lata":85,"100ml":100,"200ml":200,"50ml":50,"150ml":150,"ml":1,"ramo":5,"1 ramo":5,"2 dentes":10,"fatias":20,"1 fatia":20,"2 fatias":40,"3 fatias":60,"2 folhas":20,"rodelas":50,"2 rodelas":100,"3 rodelas":60,"pitada":1,"1 pitada":1,"a gosto":null,"":null,"scoop":30,"1 scoop":30,"punhado":30};
+const ID={"arroz":{"½ xícara":93,"¼ xícara":46,"1 xícara":185},"aveia":{"½ xícara":45,"¼ xícara":23,"1 xícara":90,"3 colheres de sopa":30,"4 colheres de sopa":40},"farinha de aveia":{"½ xícara":63,"1 xícara":125,"3 colheres de sopa":28},"quinoa":{"½ xícara":85,"¼ xícara":43,"1 xícara":170},"lentilha":{"1 xícara":200,"½ xícara":100},"feijão":{"1 xícara":180,"½ xícara":90,"¼ xícara":45},"grão-de-bico":{"1 xícara":180,"½ xícara":90},"ervilha":{"1 xícara":160,"½ xícara":80,"¼ xícara":40},"trigo":{"½ xícara":80,"¼ xícara":40},"azeite":{"1 colher de sopa":13,"2 colheres de sopa":26,"1 colher de chá":5},"mel":{"1 colher de sopa":21,"1 colher de chá":7},"shoyu":{"1 colher de sopa":16},"parmesão":{"2 colheres de sopa":20},"gergelim":{"1 colher de chá":3}};
+function gGrams(name,qty,p){
+  if(!qty||qty==='a gosto'||qty==='')return null;
+  const n=(name||'').toLowerCase(),q=(qty||'').trim();
+  if(/^\d+g$/.test(q))return Math.round(parseInt(q)*p)+'g';
+  if(/^\d+ml$/.test(q))return Math.round(parseInt(q)*p)+'ml';
+  for(const k in ID){if(n.includes(k)&&ID[k][q]!==undefined)return '≈'+Math.round(ID[k][q]*p)+'g';}
+  if(UG[q]!=null)return '≈'+Math.round(UG[q]*p)+'g';
+  const m=q.match(/^(\d+)\s*(.*)/);
+  if(m&&UG[m[2].trim()]!=null)return '≈'+Math.round(parseInt(m[1])*UG[m[2].trim()]*p)+'g';
+  return null;
+}
+
+// ── State ────────────────────────────────────────────
+let goal=1200,meals=[],filterCat='all',filterGoal=true,pendingSlot=null;
+const SLOTS=[
+  {label:'Café da manhã',icon:'☕',type:'cafe',idx:0},
+  {label:'Lanche da manhã',icon:'🍎',type:'cafe',idx:1},
+  {label:'Almoço',icon:'🍽️',type:'main',idx:2},
+  {label:'Lanche da tarde',icon:'🥑',type:'cafe',idx:3},
+  {label:'Jantar',icon:'🌙',type:'main',idx:4}
+];
+
+// ── Helpers ──────────────────────────────────────────
+function pN(s){return parseInt((s||'0').replace(/[^0-9]/g,''))||0;}
+
+// ── Goal ─────────────────────────────────────────────
+function setGoal(g,el){
+  goal=g;
+  document.querySelectorAll('.goal-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('prog-goal').textContent='Meta: '+g+' kcal';
+  updateSummary();renderRecipes();
+}
+
+// ── Panels ───────────────────────────────────────────
+function showPanel(id,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  el.classList.add('active');
+  if(id==='grocery')renderGrocery();
+}
+
+// ── Summary ──────────────────────────────────────────
+function updateSummary(){
+  const tK=meals.reduce((a,m)=>a+Math.round(pN(m.kcal)*(m.portion||1)),0);
+  const tP=meals.reduce((a,m)=>a+Math.round(pN(m.protein)*(m.portion||1)),0);
+  const tC=meals.reduce((a,m)=>a+Math.round(pN(m.carbs)*(m.portion||1)),0);
+  const tF=meals.reduce((a,m)=>a+Math.round(pN(m.fat)*(m.portion||1)),0);
+  document.getElementById('sum-kcal').textContent=tK;
+  document.getElementById('sum-prot').textContent=tP+'g';
+  document.getElementById('sum-carb').textContent=tC+'g';
+  document.getElementById('sum-fat').textContent=tF+'g';
+  const pct=Math.min(100,Math.round(tK/goal*100));
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-fill').className='prog-fill'+(tK>goal?' over':'');
+  document.getElementById('prog-txt').textContent=pct+'% da meta diária';
+}
+
+// ── Meals ────────────────────────────────────────────
+function renderMeals(){
+  const el=document.getElementById('meals-list');el.innerHTML='';
+  SLOTS.forEach((slot,idx)=>{
+    const meal=meals.find(m=>m.slot===idx);
+    const div=document.createElement('div');
+    if(meal){
+      const isCafe=meal.meal_type==='cafe';
+      div.className='meal-card '+(isCafe?'filled-cafe':'filled');
+      const k=Math.round(pN(meal.kcal)*(meal.portion||1));
+      const srcTag=isCafe?'<span class="badge badge-cafe">☀️ Cafés</span>':'<span class="badge badge-main">Marmitas</span>';
+      div.innerHTML=`
+        <div class="slot-ico">${slot.icon}</div>
+        <div class="slot-body">
+          <div class="slot-name">${slot.label} ${srcTag}</div>
+          <div class="slot-meta">${meal.title}${meal.portion!==1?' · ×'+meal.portion.toFixed(1):''} · P:${Math.round(pN(meal.protein)*(meal.portion||1))}g C:${Math.round(pN(meal.carbs)*(meal.portion||1))}g G:${Math.round(pN(meal.fat)*(meal.portion||1))}g</div>
+        </div>
+        <div class="slot-kcal${isCafe?' amber':''}">${k} kcal</div>
+        <button class="rm-btn" onclick="removeMeal(${idx});event.stopPropagation()" title="Remover">✕</button>`;
+      div.onclick=(e)=>{if(!e.target.closest('.rm-btn'))openModal(meal,idx);};
+    } else {
+      div.className='meal-card empty-slot';
+      const isCafe=slot.type==='cafe';
+      div.innerHTML=`
+        <div class="slot-ico" style="opacity:.35">${slot.icon}</div>
+        <div class="slot-body">
+          <div class="slot-name" style="color:var(--text2)">${slot.label}</div>
+          <div class="slot-meta">${isCafe?'<span class="slot-hint">☀️ Sugestão: cafés & lanches</span>':'Toque para adicionar'}</div>
+        </div>
+        <div style="font-size:13px;color:var(--text3)">+ adicionar</div>`;
+      div.onclick=()=>{
+        pendingSlot=idx;
+        showPanel('recipes',document.querySelector('.tab-btn:nth-child(2)'));
+        if(isCafe)setFilter('cafe',document.getElementById('f-cafe'));
+        else setFilter('all',document.querySelector('.f-btn:first-child'));
+        renderRecipes();
+      };
+    }
+    el.appendChild(div);
+  });
+  updateSummary();
+}
+
+function removeMeal(idx){meals=meals.filter(m=>m.slot!==idx);renderMeals();renderGrocery();}
+function openAdd(){pendingSlot=null;showPanel('recipes',document.querySelector('.tab-btn:nth-child(2)'));renderRecipes();}
+
+// ── Filters ──────────────────────────────────────────
+function setFilter(cat,el){
+  filterCat=cat;
+  document.querySelectorAll('.f-btn').forEach(b=>{if(!b.id)b.classList.remove('active','active-amber');});
+  if(cat==='cafe'){el.classList.add('active','active-amber');}else{el.classList.add('active');}
+  renderRecipes();
+}
+function toggleGoal(el){filterGoal=!filterGoal;el.classList.toggle('active',filterGoal);renderRecipes();}
+function catMatch(r,cat){
+  if(cat==='all')return true;
+  if(cat==='cafe')return r.meal_type==='cafe';
+  const t=r.title.toLowerCase();
+  if(cat==='frango')return t.includes('frango')||t.includes('galinhada');
+  if(cat==='carne')return t.includes('carne')||t.includes('bife')||t.includes('almôndeg')||t.includes('kafta')||t.includes('quibe');
+  if(cat==='peixe')return t.includes('tilápia')||t.includes('salmão')||t.includes('peixe')||t.includes('atum')||t.includes('moqueca');
+  if(cat==='veg')return r.meal_type==='cafe'&&!t.includes('frango')&&!t.includes('peru')&&!t.includes('atum')||r.meal_type==='main'&&!t.includes('frango')&&!t.includes('carne')&&!t.includes('peixe')&&!t.includes('tilápia')&&!t.includes('salmão')&&!t.includes('atum')&&!t.includes('peru');
+  if(cat==='sopa')return t.includes('sopa')||t.includes('caldeirada');
+  return true;
+}
+
+// ── Recipes list ─────────────────────────────────────
+function renderRecipes(){
+  const search=(document.getElementById('search-input').value||'').toLowerCase();
+  const used=meals.reduce((a,m)=>a+Math.round(pN(m.kcal)*(m.portion||1)),0);
+  const rem=goal-used;
+  const el=document.getElementById('recipes-list');el.innerHTML='';
+  const filtered=ALL_RECIPES.filter(r=>{
+    if(search&&!r.title.toLowerCase().includes(search))return false;
+    if(!catMatch(r,filterCat))return false;
+    if(filterGoal&&pN(r.kcal)>rem+50)return false;
+    return true;
+  });
+  if(!filtered.length){el.innerHTML=`<div class="empty-state"><div class="ei">🔍</div><p>Nenhuma receita encontrada.<br>Tente ajustar os filtros.</p></div>`;return;}
+  filtered.forEach(r=>{
+    const card=document.createElement('div');
+    const isCafe=r.meal_type==='cafe';
+    card.className='rec-card'+(isCafe?' cafe-card':'');
+    const bdg=r.difficulty==='fácil'?'<span class="badge badge-easy">fácil</span>':'<span class="badge badge-mid">médio</span>';
+    const src=isCafe?'<span class="badge badge-cafe">☀️ Cafés</span>':'<span class="badge badge-main">Marmitas</span>';
+    card.innerHTML=`
+      <div class="rec-top">
+        <div class="rec-title">${r.title}</div>
+        <div class="rec-kcal${isCafe?' amber':''}">${r.kcal} kcal</div>
+      </div>
+      <div class="rec-meta">
+        <span>⏱ ${r.time} min</span>
+        <span>P:${r.protein} C:${r.carbs} G:${r.fat}</span>
+        ${bdg}${src}
+      </div>`;
+    card.onclick=()=>openModal(r,null);
+    el.appendChild(card);
+  });
+}
+
+// ── Modal ─────────────────────────────────────────────
+function openModal(recipe,editSlot){
+  const p=recipe.portion||1;
+  const isCafe=recipe.meal_type==='cafe';
+  const ingrHtml=(recipe.ingredients||[]).map(i=>{
+    const g=gGrams(i.name,i.qty,p);
+    return `<tr><td>${i.name}</td><td>${i.qty||'q.b.'}</td><td><span class="g-pill${g?'':' nil'}">${g||'—'}</span></td></tr>`;
+  }).join('');
+  const stepsHtml=(recipe.steps||[]).map((s,i)=>`<li><span class="step-n">${i+1}</span>${s}</li>`).join('');
+  const freezeHtml=recipe.freeze?`<div class="freeze-box">❄️ ${recipe.freeze}</div>`:'';
+  const slotOpts=SLOTS.map((s,i)=>`<option value="${i}" ${(editSlot===i||pendingSlot===i)?'selected':''}>${s.label}</option>`).join('');
+  const srcTag=isCafe?'<span class="badge badge-cafe">☀️ Cafés da Manhã</span>':'<span class="badge badge-main">Marmitas Fit</span>';
+
+  document.getElementById('modal-body').innerHTML=`
+    <div class="modal-title">${recipe.title}</div>
+    <div class="modal-sub">⏱ ${recipe.time} min &middot; ${recipe.difficulty} ${srcTag}</div>
+    <div class="macro-grid">
+      <div class="mc green"><div class="mv" id="m-k">${Math.round(pN(recipe.kcal)*p)}</div><div class="ml">kcal</div></div>
+      <div class="mc blue"><div class="mv" id="m-p">${Math.round(pN(recipe.protein)*p)}g</div><div class="ml">proteína</div></div>
+      <div class="mc orange"><div class="mv" id="m-c">${Math.round(pN(recipe.carbs)*p)}g</div><div class="ml">carbos</div></div>
+      <div class="mc amber"><div class="mv" id="m-f">${Math.round(pN(recipe.fat)*p)}g</div><div class="ml">gordura</div></div>
+    </div>
+    <div class="portion-row">
+      <label>Ajuste de porção</label>
+      <input type="range" min="0.5" max="2" step="0.1" value="${p}" id="p-slider" oninput="updPortion(this.value,'${recipe.title}','${recipe.kcal}','${recipe.protein}','${recipe.carbs}','${recipe.fat}')">
+      <span class="portion-val" id="p-val">×${p.toFixed(1)}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="sec-lbl">Ingredientes</div>
+      <span style="font-size:11px;color:var(--text3)">coluna verde = referência em gramas</span>
+    </div>
+    <table class="ing-table" id="ing-tbl"><tbody>${ingrHtml}</tbody></table>
+    <div class="sec-lbl">Modo de preparo</div>
+    <ol class="steps-ol">${stepsHtml}</ol>
+    ${freezeHtml}
+    <div class="slot-select-row" style="margin-top:1rem">
+      <label>Refeição:</label>
+      <select id="slot-sel">${slotOpts}</select>
+    </div>
+    <button class="add-plan-btn" onclick="addToPlan('${recipe.title}',${editSlot})">${editSlot!==null?'💾 Salvar alterações':'✅ Adicionar ao plano'}</button>`;
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function updPortion(val,title,bk,bp,bc,bf){
+  const p=parseFloat(val);
+  document.getElementById('p-val').textContent='×'+p.toFixed(1);
+  document.getElementById('m-k').textContent=Math.round(pN(bk)*p);
+  document.getElementById('m-p').textContent=Math.round(pN(bp)*p)+'g';
+  document.getElementById('m-c').textContent=Math.round(pN(bc)*p)+'g';
+  document.getElementById('m-f').textContent=Math.round(pN(bf)*p)+'g';
+  const r=ALL_RECIPES.find(x=>x.title===title);
+  if(!r)return;
+  document.querySelector('#ing-tbl tbody').innerHTML=(r.ingredients||[]).map(i=>{
+    const g=gGrams(i.name,i.qty,p);
+    return `<tr><td>${i.name}</td><td>${i.qty||'q.b.'}</td><td><span class="g-pill${g?'':' nil'}">${g||'—'}</span></td></tr>`;
+  }).join('');
+}
+
+function addToPlan(title,editSlot){
+  const slot=parseInt(document.getElementById('slot-sel').value);
+  const portion=parseFloat(document.getElementById('p-slider').value);
+  const recipe=ALL_RECIPES.find(r=>r.title===title);
+  if(!recipe)return;
+  meals=meals.filter(m=>m.slot!==slot);
+  meals.push({...recipe,slot,portion});
+  pendingSlot=null;
+  closeModal();renderMeals();renderGrocery();
+  showPanel('plan',document.querySelector('.tab-btn:first-child'));
+}
+
+function closeModal(){document.getElementById('modal-bg').classList.remove('open');}
+function closeOvl(e){if(e.target===document.getElementById('modal-bg'))closeModal();}
+
+// ── Grocery ───────────────────────────────────────────
+function renderGrocery(){
+  const el=document.getElementById('grocery-list');
+  if(!meals.length){
+    el.innerHTML=`<div class="empty-state"><div class="ei">🛒</div><p>Adicione refeições ao plano<br>para gerar a lista de compras.</p></div>`;
+    return;
+  }
+  const map={};
+  meals.forEach(m=>{(m.ingredients||[]).forEach(i=>{if(!i.name)return;if(!map[i.name])map[i.name]={name:i.name,qty:i.qty,portion:m.portion||1};});});
+  const items=Object.values(map);
+  el.innerHTML=`<div style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">${items.length} ingredientes · ${meals.length} refeições</div>`+
+    `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.5rem 1rem">`+
+    items.map((it,i)=>{
+      const g=gGrams(it.name,it.qty,it.portion);
+      const gTag=g?`<span class="grocery-g">${g}</span>`:'';
+      return `<div class="grocery-item"><input type="checkbox" id="gi${i}" onchange="this.nextElementSibling.classList.toggle('done',this.checked)"><label for="gi${i}">${it.name}${it.qty?' — '+it.qty:''} ${gTag}</label></div>`;
+    }).join('')+`</div>`;
+}
+
+
+
+// ── Print / PDF ───────────────────────────────────────
+function openPrintSheet(){
+  if(!meals.length){
+    alert('Adicione ao menos uma refeição antes de imprimir.');
+    return;
+  }
+
+  const goalNames={1200:'Emagrecimento',1400:'Manutenção',1600:'Hipertrofia'};
+  const tK=meals.reduce((a,m)=>a+Math.round(pN(m.kcal)*(m.portion||1)),0);
+  const tP=meals.reduce((a,m)=>a+Math.round(pN(m.protein)*(m.portion||1)),0);
+  const tC=meals.reduce((a,m)=>a+Math.round(pN(m.carbs)*(m.portion||1)),0);
+  const tF=meals.reduce((a,m)=>a+Math.round(pN(m.fat)*(m.portion||1)),0);
+  const today=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  const pct=Math.round(tK/goal*100);
+
+  // Grocery map
+  const gmap={};
+  meals.forEach(m=>{(m.ingredients||[]).forEach(i=>{if(!i.name)return;if(!gmap[i.name])gmap[i.name]={name:i.name,qty:i.qty,portion:m.portion||1};});});
+  const groceryItems=Object.values(gmap);
+
+  // Build meals HTML
+  const mealsHTML=SLOTS.map(slot=>{
+    const meal=meals.find(m=>m.slot===slot.idx);
+    if(!meal){
+      return '<div class="ps-meal ps-empty"><b>'+slot.icon+' '+slot.label+'</b> — não definido</div>';
+    }
+    const p=meal.portion||1;
+    const k=Math.round(pN(meal.kcal)*p);
+    const pr=Math.round(pN(meal.protein)*p);
+    const ca=Math.round(pN(meal.carbs)*p);
+    const fa=Math.round(pN(meal.fat)*p);
+    const isCafe=meal.meal_type==='cafe';
+    const srcTag=isCafe?'<span class="ps-badge ps-cafe">☀️ Cafés</span>':'<span class="ps-badge ps-main">🥗 Marmitas</span>';
+
+    const ingRows=(meal.ingredients||[]).map(i=>{
+      const g=gGrams(i.name,i.qty,p);
+      return '<tr><td>'+i.name+'</td><td>'+( i.qty||'q.b.')+'</td><td>'+(g?'<b>'+g+'</b>':'—')+'</td></tr>';
+    }).join('');
+
+    const stepsList=(meal.steps||[]).map((s,i)=>'<li><b>'+(i+1)+'.</b> '+s+'</li>').join('');
+    const freezeHtml=meal.freeze?'<p class="ps-freeze">❄️ '+meal.freeze+'</p>':'';
+    const portionTag=p!==1?'<span class="ps-portion"> · porção ×'+p.toFixed(1)+'</span>':'';
+
+    return '<div class="ps-meal">'
+      +'<div class="ps-meal-header">'
+        +'<span class="ps-slot-icon">'+slot.icon+'</span>'
+        +'<span class="ps-slot-label">'+slot.label+'</span>'
+        +srcTag
+        +'<span class="ps-kcal">'+k+' kcal</span>'
+        +portionTag
+      +'</div>'
+      +'<div class="ps-recipe-name">'+meal.title+'</div>'
+      +'<div class="ps-macros">'
+        +'<span>🥩 Proteína: <b>'+pr+'g</b></span>'
+        +'<span>🌾 Carbos: <b>'+ca+'g</b></span>'
+        +'<span>🥑 Gordura: <b>'+fa+'g</b></span>'
+        +'<span>⏱ '+meal.time+' min</span>'
+      +'</div>'
+      +'<div class="ps-two-col">'
+        +'<div class="ps-col">'
+          +'<div class="ps-col-title">Ingredientes</div>'
+          +'<table class="ps-table"><tbody>'+ingRows+'</tbody></table>'
+          +freezeHtml
+        +'</div>'
+        +'<div class="ps-col">'
+          +'<div class="ps-col-title">Modo de preparo</div>'
+          +'<ol class="ps-steps">'+stepsList+'</ol>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+
+  // Build grocery HTML
+  const groceryHTML=groceryItems.map((it,i)=>{
+    const g=gGrams(it.name,it.qty,it.portion);
+    return '<div class="ps-gi">'
+      +'<span class="ps-cb">☐</span>'
+      +it.name+(it.qty?' — '+it.qty:'')
+      +(g?' <span class="ps-gpill">'+g+'</span>':'')
+    +'</div>';
+  }).join('');
+
+  const sheet=document.getElementById('print-sheet');
+  sheet.innerHTML=`<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1a1a1a;background:#fff}
+  .ps-wrap{max-width:100%;padding:0}
+  .ps-header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #1D9E75;padding-bottom:10px;margin-bottom:14px}
+  .ps-header-left h1{font-size:18px;font-weight:700;color:#1D9E75;margin:0 0 2px}
+  .ps-header-left p{font-size:10px;color:#666}
+  .ps-header-right{text-align:right;font-size:10px;color:#555}
+  .ps-header-right strong{font-size:12px;color:#1D9E75;display:block}
+  .ps-summary{display:flex;gap:8px;background:#f0faf6;border:1px solid #b8dece;border-radius:8px;padding:10px 12px;margin-bottom:14px}
+  .ps-sum{flex:1;text-align:center}
+  .ps-sum .sv{font-size:16px;font-weight:700;color:#1D9E75;display:block}
+  .ps-sum .sl{font-size:9px;color:#666;text-transform:uppercase;letter-spacing:.04em}
+  .ps-sum.warn .sv{color:#D85A30}
+  .ps-section{font-size:11px;font-weight:700;color:#1D9E75;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #c8e6d8;padding-bottom:4px;margin-bottom:10px}
+  .ps-meal{border:1px solid #ddd;border-radius:8px;padding:10px 12px;margin-bottom:10px;page-break-inside:avoid}
+  .ps-meal.ps-empty{background:#fafafa;border-style:dashed;padding:8px 12px;color:#aaa;font-size:11px}
+  .ps-meal-header{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+  .ps-slot-icon{font-size:14px}
+  .ps-slot-label{font-size:12px;font-weight:700;color:#333}
+  .ps-kcal{margin-left:auto;font-size:12px;font-weight:700;color:#1D9E75}
+  .ps-portion{font-size:10px;color:#888}
+  .ps-badge{font-size:9px;font-weight:600;padding:1px 6px;border-radius:8px}
+  .ps-cafe{background:#FAEEDA;color:#854F0B}
+  .ps-main{background:#E1F5EE;color:#0F6E56}
+  .ps-recipe-name{font-size:13px;font-weight:700;margin-bottom:5px;color:#111}
+  .ps-macros{display:flex;gap:12px;font-size:10px;color:#555;margin-bottom:8px;flex-wrap:wrap}
+  .ps-macros span b{color:#222}
+  .ps-two-col{display:flex;gap:12px}
+  .ps-col{flex:1;min-width:0}
+  .ps-col-title{font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;border-bottom:1px solid #f0f0f0;padding-bottom:3px}
+  .ps-table{width:100%;border-collapse:collapse;font-size:10px}
+  .ps-table tr{border-bottom:1px solid #f5f5f5}
+  .ps-table td{padding:3px 2px;vertical-align:top}
+  .ps-table td:nth-child(2){color:#666;padding:3px 5px;white-space:nowrap}
+  .ps-table td:nth-child(3){color:#0F6E56;font-weight:600;white-space:nowrap}
+  .ps-steps{padding-left:0;list-style:none;font-size:10px}
+  .ps-steps li{padding:2px 0;border-bottom:1px solid #f8f8f8;line-height:1.4}
+  .ps-steps li:last-child{border:none}
+  .ps-freeze{font-size:9px;color:#0F6E56;background:#E1F5EE;padding:4px 8px;border-radius:5px;margin-top:5px}
+  .ps-page-break{page-break-before:always;height:0}
+  .ps-gi{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:11px;break-inside:avoid}
+  .ps-gi:last-child{border:none}
+  .ps-cb{font-size:14px;color:#bbb;flex-shrink:0;line-height:1}
+  .ps-gpill{background:#E1F5EE;color:#0F6E56;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px}
+  .ps-grocery-grid{columns:2;column-gap:20px}
+  .ps-footer{margin-top:16px;padding-top:8px;border-top:1px solid #eee;display:flex;justify-content:space-between;font-size:9px;color:#aaa}
+  </style>
+  <div class="ps-wrap">
+    <div class="ps-header">
+      <div class="ps-header-left">
+        <h1>🥗 Plano Alimentar · Felipe Donatto</h1>
+        <p>${today} &nbsp;·&nbsp; Meta: ${goal} kcal · ${goalNames[goal]||''} &nbsp;·&nbsp; ${pct}% da meta atingido</p>
+      </div>
+      <div class="ps-header-right">
+        <strong>Marmitas Fit</strong>
+        240 receitas saudáveis
+      </div>
+    </div>
+
+    <div class="ps-summary">
+      <div class="ps-sum ${tK>goal?'warn':''}">
+        <span class="sv">${tK}</span><span class="sl">kcal totais</span>
+      </div>
+      <div class="ps-sum">
+        <span class="sv">${tP}g</span><span class="sl">Proteína</span>
+      </div>
+      <div class="ps-sum">
+        <span class="sv">${tC}g</span><span class="sl">Carboidratos</span>
+      </div>
+      <div class="ps-sum">
+        <span class="sv">${tF}g</span><span class="sl">Gorduras</span>
+      </div>
+      <div class="ps-sum">
+        <span class="sv">${meals.length}/5</span><span class="sl">Refeições</span>
+      </div>
+      <div class="ps-sum">
+        <span class="sv">${goal-tK>0?goal-tK:0}</span><span class="sl">kcal restantes</span>
+      </div>
+    </div>
+
+    <div class="ps-section">📅 Refeições do dia</div>
+    ${mealsHTML}
+
+    <div class="ps-page-break"></div>
+
+    <div class="ps-header" style="margin-top:0">
+      <div class="ps-header-left">
+        <h1>🛒 Lista de Compras · Felipe Donatto</h1>
+        <p>${today} &nbsp;·&nbsp; ${groceryItems.length} ingredientes · ${meals.length} refeições</p>
+      </div>
+    </div>
+    <div class="ps-grocery-grid">${groceryHTML}</div>
+
+    <div class="ps-footer">
+      <span>Gerado pelo app Marmitas Fit · Felipe Donatto · Nutricionista</span>
+      <span>Para salvar como PDF: Ctrl+P → Salvar como PDF</span>
+    </div>
+  </div>`;
+
+  // Small delay to ensure DOM is updated then print
+  setTimeout(()=>window.print(), 300);
+}
+
+
+// ── LOGIN ─────────────────────────────────────────────
+// Adicione quantas senhas quiser abaixo:
+// 'SENHA': 'Nome do Paciente'
+const PASSWORDS = {
+  'marmitas2024':   'Paciente Geral',
+  'felipefit':      'Acesso Demo',
+  'nutri123':       'Consulta Padrão',
+  // Adicione mais senhas aqui:
+  // 'senhadopaciente': 'Nome do Paciente',
+};
+
+const SESSION_KEY = 'marmitas_auth';
+
+function checkSession(){
+  const saved = sessionStorage.getItem(SESSION_KEY);
+  if(saved){
+    unlockApp(saved);
+  }
+}
+
+function doLogin(){
+  const pass = document.getElementById('login-pass').value.trim();
+  const errEl = document.getElementById('login-error');
+  const input = document.getElementById('login-pass');
+  
+  if(!pass){
+    errEl.textContent = 'Digite sua senha para continuar.';
+    input.classList.add('error');
+    setTimeout(()=>input.classList.remove('error'),400);
+    return;
+  }
+  
+  if(PASSWORDS[pass]){
+    sessionStorage.setItem(SESSION_KEY, PASSWORDS[pass]);
+    unlockApp(PASSWORDS[pass]);
+  } else {
+    errEl.textContent = '❌ Senha incorreta. Tente novamente.';
+    input.value = '';
+    input.classList.add('error');
+    setTimeout(()=>input.classList.remove('error'),400);
+    input.focus();
+  }
+}
+
+function unlockApp(patientName){
+  // Hide login, show app
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-header').classList.remove('app-hidden');
+  document.getElementById('app-main').classList.remove('app-hidden');
+  
+  // Update user name in header
+  const userChip = document.querySelector('.user-chip');
+  if(userChip && patientName !== 'Paciente Geral'){
+    const name = patientName.split(' ').slice(0,2).join(' ');
+    const initials = patientName.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    userChip.innerHTML = '<div class="av">'+initials+'</div><span>'+name+'</span>';
+  }
+}
+
+// Check if already logged in
+checkSession();
+
+
+// ── Init ──────────────────────────────────────────────
+try {
+  checkSession();
+  renderMeals();
+  renderRecipes();
+  document.getElementById('login-screen').style.display = 'flex';
+} catch(e) {
+  document.body.innerHTML = '<div style="padding:2rem;font-family:Arial;color:red"><h2>Erro ao carregar</h2><pre>'+e.message+'</pre></div>';
+}
+</script>
+
+<!-- PRINT SHEET -->
+<div id="print-sheet"></div>
+
+</body>
+</html>
